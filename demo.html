@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>&#x3C;at-carbon-video&#x3E; demo page</title>
+	<script src="../webcomponentsjs/webcomponents-lite.js"></script>
+	<link rel="import" href="at-carbon-video.html">
+	<link rel="import" href="../paper-styles/typography.html">
+	<link rel="import" href="../paper-styles/color.html">
+	<link rel="import" href="../paper-material/paper-material.html">
+</head>
+<body>
+	<style is="custom-style">
+	    .paper-font-display1 {
+	        font-weight: 300 !important;
+	        color: teal;
+	        margin: 20px;
+	        @apply(--paper-font-display1);
+	    }
+
+	    .paper-font-headline {
+	        @apply(--paper-font-headline);
+	    }
+
+	    .paper-font-title {
+	        @apply(--paper-font-title);
+	    }
+
+	    .paper-font-subhead {
+	        @apply(--paper-font-subhead);
+	    }
+
+	    .paper-font-button {
+	        @apply(--paper-font-button);
+	        color: teal;
+	    }
+
+	    paper-material {
+	    	min-height: 300px;
+	    	position: relative;
+	    	padding: 10px;
+	    	margin: 10px 0;
+	    	text-align: center;
+	    }
+
+	    at-carbon-video.custom {
+	    	--at-carbon-video-controls-background: var(--paper-blue-500);
+	    	--at-carbon-video-controls-color: white;
+	    	--at-carbon-video-slider-color: var(--paper-blue-700);
+	    }
+
+	    paper-fab-menu[position="vertical"] {
+	    	position: absolute;
+	    	right: 20px;
+	    	bottom: 20px;
+	    }
+
+	    paper-fab-menu[position="horizontal"] {
+	    	position: absolute;
+	    	right: 185px;
+	    	bottom: 20px;
+	    }
+
+	    .code-area pre {
+	    	position: relative;
+    		margin-left: 135px;
+    		text-align: left;
+	    }
+
+	</style>
+
+	<div class="paper-font-display1">&#x3C;at-carbon-video&#x3E;</div>
+	<paper-material elevation="1">
+		<div class="paper-font-button">Default mode (with controls, poster, autohide)</div>
+		<div class="code-area">
+			<pre>
+&#x3C;at-carbon-video controls poster=&#x22;demo.jpeg&#x22; src=&#x22;../at-core-video/big_buck_bunny.mp4&#x22; autohide-controls="1000"&#x3E;&#x3C;/at-carbon-video&#x3E;
+			</pre>
+		</div>
+
+		<at-carbon-video controls poster="demo.jpeg" src="../at-core-video/big_buck_bunny.mp4" autohide-controls="1000"></at-carbon-video>
+	</paper-material>
+
+	<paper-material elevation="1">
+		<div class="paper-font-button">Custom mode (with controls, without poster, autohide disabled)</div>
+		<div class="code-area">
+			<pre>
+&#x3C;style is=&#x22;custom-style&#x22;&#x3E;
+&#x9;at-carbon-video.custom {
+&#x9;&#x9;--at-carbon-video-controls-background: var(--paper-blue-500);
+&#x9;&#x9;--at-carbon-video-controls-color: white;
+&#x9;&#x9;--at-carbon-video-slider-color: var(--paper-blue-700);
+&#x9;}
+&#x3C;/style&#x3E;
+
+&#x3C;at-carbon-video class=&#x22;custom&#x22; controls src=&#x22;../at-core-video/big_buck_bunny.mp4&#x22; autohide-controls="0" &#x3E;&#x3C;/at-carbon-video&#x3E;&#x9;
+			</pre>
+		</div>
+
+		<at-carbon-video class="custom" controls src="../at-core-video/big_buck_bunny.mp4" autohide-controls="0"></at-carbon-video>
+	</paper-material>
+
+	<paper-material elevation="1">
+		<div class="paper-font-button">Default mode (without controls, without poster, with (loop, autoplay and muted))</div>
+		<div class="code-area">
+			<pre>
+&#x3C;at-carbon-video loop autoplay muted src=&#x22;../at-core-video/big_buck_bunny.mp4&#x22;&#x3E;&#x3C;/at-carbon-video&#x3E;
+			</pre>
+		</div>
+
+		<at-carbon-video loop autoplay muted src="../at-core-video/big_buck_bunny.mp4"></at-carbon-video>
+	</paper-material>
+</body>
+</html>

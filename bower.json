@@ -1,0 +1,14 @@
+{
+  "name": "at-carbon-video",
+  "version": "1.0.0.0",
+  "private": true,
+  "dependencies": {
+    "tangere": "TangereJs/tangere#0.8-preview",
+    "paper-styles": "PolymerElements/paper-styles#master",
+    "paper-material": "PolymerElements/paper-material#^1.0.6",
+    "at-doc-viewer": "TangereJs/at-doc-viewer#0.8-preview",
+    "at-theme": "TangereJs/at-theme#0.8-preview",
+    "at-core-video": "TangereJs/at-core-video#0.8-preview",
+    "google-youtube": "GoogleWebComponents/google-youtube#^1.2.1"
+  }
+}

@@ -1,0 +1,255 @@
+<link rel="import" href="../tangere/tangere.html">
+<link rel="import" href="../at-core-video/at-core-video.html">
+<link rel="import" href="../google-youtube/google-youtube.html">
+<link rel="import" href="../at-theme/at-theme.html">
+
+
+<dom-module id="at-carbon-video">
+  <template>
+    <style include="at-form-common"></style>
+    <style>
+
+      :host {
+        @apply(--at-form-host)
+        display: block;
+        box-sizing: border-box;
+      }
+
+      :host * {
+        box-sizing: border-box;
+      }
+
+    </style>
+
+    <div id="atContainer" class="at-container">
+      <template is="dom-if" if="{{_isCorePlayer(src)}}">
+        <at-core-video
+          src="{{src}}"
+          width="{{width}}"
+          height="{{height}}"
+          controls="{{controls}}"
+          autoplay="{{autoplay}}"
+          loop="{{loop}}"
+          thumbnail="{{thumbnail}}"
+          preload="{{preload}}"
+          muted="{{muted}}"
+          videoVolume="{{videoVolume}}"
+          autohideControls="{{autohideControls}}"
+        ></at-core-video>
+      </template>
+      <template is="dom-if" if="{{!_isCorePlayer(src)}}">
+        <google-youtube
+          video-id="{{_trimYoutubeUrl(src)}}"
+          width="{{_addPxToDimension(width)}}"
+          height="{{_addPxToDimension(height)}}"
+          thumbnail="{{thumbnail}}"
+          volume="{{videoVolume}}"
+          autoplay="{{_computeAutoplay(autoplay)}}"
+        ></google-youtube>
+      </template>
+  </div>
+
+  </template>
+  <script>
+    'use strict';
+    Polymer({
+      is: 'at-carbon-video',
+      properties: {
+
+        /**
+         * controls - if true controls will be displayed; false hides the controls
+         * this attribute doesn't work with youtube player
+         * @property controls
+         * @type Boolean
+         * @default false
+         */
+        controls: {
+          type: Boolean,
+          value: false,
+          notify: true,
+          reflectToAttribute: true
+        },
+
+        /**
+         * autoplay - if true video will start playing after it loads
+         * @property autoplay
+         * @type Boolean
+         * @default false
+         */
+        autoplay: {
+          type: Boolean,
+          value: false,
+          notify: true
+        },
+
+        /**
+         * loop - if true video will be played again from the begining when it finishes
+         * this attribute doesn't work with youtube player
+         * @property loop
+         * @type Boolean
+         * @default false
+         */
+        loop: {
+          type: Boolean,
+          value: false,
+          notify: true
+        },
+
+        /**
+         * src - path or url to the video file
+         * Supply a relative path if video is hosted inside your domain
+         * Supply a remote url if video is hosted outside your domain
+         * @property src
+         * @type String
+         * @default ""
+         */
+        src: {
+          type: String,
+          value: ""
+        },
+
+        /**
+         * thumbnail - path or url to the image file that will be displayed as thumbnail
+         * @property thumbnail
+         * @type String
+         * @default ""
+         */
+        thumbnail: {
+          type: String,
+          value: ""
+        },
+
+        /**
+         * preload - if true video will be preloaded; if false it will be loaded on play
+         * this attribute doesn't work with youtube player
+         * @property preload
+         * @type Boolean
+         * @default false
+         */
+        preload: {
+          type: Boolean,
+          value: false,
+          notify: true
+        },
+
+        /**
+         * muted - true mutes the audio
+         * @property muted
+         * @type Boolean
+         * @default false
+         */
+        muted: {
+          type: Boolean,
+          value: false,
+          reflectToAttribute: true,
+          notify: true,
+          observer: '_mutedChanged'
+        },
+
+        /**
+         * videoVolume - audio volume in %
+         * min is 0, max is 100
+         * @property videoVolume
+         * @type Number
+         * @default 100
+         */
+        videoVolume: {
+          type: Number,
+          value: 100,
+          observer: '_videoVolumeChanged'
+        },
+
+        /**
+         * autohideControls - timeout after video controls are automatically hidden
+         * this attribute doesn't work with youtube player
+         * @property autohideControls
+         * @type Number
+         * @default 1000
+         */
+        autohideControls: {
+          type: Number,
+          value: 1000
+        },
+
+        /**
+         * width - width of the video area in px
+         * @property width
+         * @type Number
+         * @default null
+         */
+        width: {
+          type: Number,
+          value: null
+        },
+
+        /**
+         * height - height of the video area in px
+         * @property height
+         * @type Number
+         * @default null
+         */
+        height: {
+          type: Number,
+          value: null
+        }
+
+      },
+
+      _isCorePlayer: function(src) {
+        function isString(obj) {
+          return Object.prototype.toString.call(obj) === "[object String]";
+        }
+        if (!isString(src) || src === "") {
+          return false;
+        }
+        return src.startsWith('https://www.youtube.com/watch?v=') ? false : true;
+      },
+
+      /**
+       * needed for google-youtube because it expects video ids instead of urls
+       * extracts youtube video id from youtube url
+       */
+      _trimYoutubeUrl: function(src) {
+        return src.replace('https://www.youtube.com/watch?v=', '');
+      },
+
+      /**
+       * needed for google-youtube because plain numbers do not work
+       * adds px to dim which is a number
+       */
+      _addPxToDimension: function(dim) {
+        return dim + 'px';
+      },
+
+      /**
+       * needed for google-youtube because boolean doesn't work
+       * if autoplay is true returns 1, otherwise returns 0
+       */
+      _computeAutoplay: function(autoplay) {
+        return autoplay ? 1 : 0;
+      },
+
+      /**
+       * needed for google-youtube because there is no observer for volume
+       * adds px to dim which is a number
+       */
+      _videoVolumeChanged: function (newValue, oldValue) {
+        var googleYoutube = this.$$('google-youtube');
+        if (googleYoutube) {
+          googleYoutube.setVolume(newValue);
+        }
+      },
+
+      /**
+       * needed for google-youtube because there is no muted attribute
+       * if true mutes the youtube player; otherwise unmutes the player
+       */
+      _mutedChanged: function(newValue, oldValue) {
+        var googleYoutube = this.$$('google-youtube');
+        if (googleYoutube) {
+          var result = newValue ? googleYoutube.mute() : googleYoutube.unMute();
+        }
+      }
+    });
+  </script>
+</dom-module>
