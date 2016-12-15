@@ -38,15 +38,17 @@
           muted="{{muted}}"
           videoVolume="{{videoVolume}}"
           autohideControls="{{autohideControls}}"
+          currentTime="{{currentTime}}"
         ></at-core-video>
       </template>
       <template is="dom-if" if="{{!_isCorePlayer(src)}}">
         <div class="google-youtube-container">
           <google-youtube
-          video-id="{{_trimYoutubeUrl(src)}}"
-          thumbnail="{{thumbnail}}"
-          volume="{{videoVolume}}"
-          autoplay="{{_computeAutoplay(autoplay)}}"
+            video-id="{{_trimYoutubeUrl(src)}}"
+            thumbnail="{{thumbnail}}"
+            volume="{{videoVolume}}"
+            autoplay="{{_computeAutoplay(autoplay)}}"
+            start-time="{{currentTime}}"
           ></google-youtube>
         </div>
       </template>
@@ -194,12 +196,24 @@
         height: {
           type: Number,
           value: null
+        },
+
+        /**
+         * currentTime - start time at which video should start in seconds
+         * @property currentTime
+         * @type Number
+         * @default 0
+         */
+        currentTime: {
+          type: Number,
+          value: 0
         }
 
       },
 
       observers: [
-        '_updateDimensions(width, height)'
+        '_updateDimensions(width, height)',
+        '_updateCurrentTime(currentTime)'
       ],
 
       _isCorePlayer: function(src) {
@@ -209,8 +223,11 @@
         if (!isString(src) || src === "") {
           return false;
         }
-        var isCorePlayer = src.startsWith('https://www.youtube.com/watch?v=') || src.startsWith('https://youtu.be/');
-        return  !isCorePlayer;
+
+        var isFullUrl = src.indexOf('https://www.youtube.com/watch?v=') > -1;
+        var isShortUrl = src.indexOf('https://youtu.be/') > -1;
+        var isCorePlayer = (!isFullUrl && isShortUrl) || (isFullUrl && isShortUrl);
+        return isCorePlayer;
       },
 
       /**
@@ -239,7 +256,7 @@
         if ([null, ""].indexOf(width) !== -1 || [null, ""].indexOf(height) !== -1) { return; }
         if (isNaN(parseInt(width)) || isNaN(parseInt(height))) { return; }
 
-        var corePlayer = this.$$('at-core-player');
+        var corePlayer = this.$$('at-core-video');
         var googleYoutube = this.$$('google-youtube');
 
         if (corePlayer) {
@@ -249,6 +266,43 @@
           googleYoutube.width = this._addPxToDimension(width);
           googleYoutube.height = this._addPxToDimension(height);
         }
+      },
+
+      /**
+       * needed for at-core-player
+       * for "reasons" when current-time is set as attribute on at-carbon-video, data binding for currentTime to at-core-player doesn't work
+       * so its done by code
+       */
+      _updateCurrentTime: function(currentTime) {
+        var self = this;
+        this.$.atContainer.addEventListener('dom-change', function(event) {
+          var currentTime1 = parseFloat(currentTime);
+          if (isNaN(currentTime1)) { return; }
+
+          var corePlayer = self.$$('at-core-video');
+          if (corePlayer) {
+            corePlayer.currentTime = currentTime1;
+          }
+
+          /**
+           * because google-youtube is f***ing garbage and it doesn't provide a way to set video start time
+           * hacks such as this one bellow are required in year 2016 (December! FFS, its December and this is needed! WTF?!)
+           * And no. google-youtube.currenttime property is useless; it just holds the value in seconds of for how long video has been played
+           * its utterly unused in initialization of any kind
+           */
+          var googleYoutube = self.$$('google-youtube');
+          var updatedCurrentTime = false;
+          if (googleYoutube) {
+            googleYoutube.addEventListener('state-changed', function(event) {
+              if (googleYoutube.state === 1 && !updatedCurrentTime) {
+                // value of 1 stands for 'playing' state
+                updatedCurrentTime = true;
+                googleYoutube.seekTo(currentTime1);
+              }
+            });
+          }
+        });
+
       },
 
       /**
