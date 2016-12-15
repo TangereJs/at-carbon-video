@@ -19,14 +19,17 @@
         box-sizing: border-box;
       }
 
+      :host .google-youtube-container {
+        display: flex;
+        justify-content: center;
+      }
+
     </style>
 
     <div id="atContainer" class="at-container">
       <template is="dom-if" if="{{_isCorePlayer(src)}}">
         <at-core-video
           src="{{src}}"
-          width="{{width}}"
-          height="{{height}}"
           controls="{{controls}}"
           autoplay="{{autoplay}}"
           loop="{{loop}}"
@@ -38,14 +41,14 @@
         ></at-core-video>
       </template>
       <template is="dom-if" if="{{!_isCorePlayer(src)}}">
-        <google-youtube
+        <div class="google-youtube-container">
+          <google-youtube
           video-id="{{_trimYoutubeUrl(src)}}"
-          width="{{_addPxToDimension(width)}}"
-          height="{{_addPxToDimension(height)}}"
           thumbnail="{{thumbnail}}"
           volume="{{videoVolume}}"
           autoplay="{{_computeAutoplay(autoplay)}}"
-        ></google-youtube>
+          ></google-youtube>
+        </div>
       </template>
   </div>
 
@@ -195,6 +198,10 @@
 
       },
 
+      observers: [
+        '_updateDimensions(width, height)'
+      ],
+
       _isCorePlayer: function(src) {
         function isString(obj) {
           return Object.prototype.toString.call(obj) === "[object String]";
@@ -202,7 +209,8 @@
         if (!isString(src) || src === "") {
           return false;
         }
-        return src.startsWith('https://www.youtube.com/watch?v=') ? false : true;
+        var isCorePlayer = src.startsWith('https://www.youtube.com/watch?v=') || src.startsWith('https://youtu.be/');
+        return  !isCorePlayer;
       },
 
       /**
@@ -210,7 +218,9 @@
        * extracts youtube video id from youtube url
        */
       _trimYoutubeUrl: function(src) {
-        return src.replace('https://www.youtube.com/watch?v=', '');
+        return src
+          .replace('https://www.youtube.com/watch?v=', '')
+          .replace('https://youtu.be/', '');
       },
 
       /**
@@ -219,6 +229,26 @@
        */
       _addPxToDimension: function(dim) {
         return dim + 'px';
+      },
+
+      /**
+       * needed for both players
+       * direct binding of width and height doesn't work because value(s) need to be processed before applying
+       */
+      _updateDimensions: function(width, height) {
+        if ([null, ""].indexOf(width) !== -1 || [null, ""].indexOf(height) !== -1) { return; }
+        if (isNaN(parseInt(width)) || isNaN(parseInt(height))) { return; }
+
+        var corePlayer = this.$$('at-core-player');
+        var googleYoutube = this.$$('google-youtube');
+
+        if (corePlayer) {
+          corePlayer.width = width;
+          corePlayer.height = height;
+        } else if (googleYoutube) {
+          googleYoutube.width = this._addPxToDimension(width);
+          googleYoutube.height = this._addPxToDimension(height);
+        }
       },
 
       /**
