@@ -44,7 +44,7 @@
       <template is="dom-if" if="{{!_isCorePlayer(src)}}">
         <div class="google-youtube-container">
           <google-youtube
-            video-id="{{_trimYoutubeUrl(src)}}"
+            video-id="{{_extractVideoIdFromUrl(src)}}"
             thumbnail="{{thumbnail}}"
             volume="{{videoVolume}}"
             autoplay="{{_computeAutoplay(autoplay)}}"
@@ -234,10 +234,14 @@
        * needed for google-youtube because it expects video ids instead of urls
        * extracts youtube video id from youtube url
        */
-      _trimYoutubeUrl: function(src) {
-        return src
-          .replace('https://www.youtube.com/watch?v=', '')
-          .replace('https://youtu.be/', '');
+      _extractVideoIdFromUrl: function(src) {
+        var srcParts = src.split('?v=');
+        if (srcParts.length !== 2) { return src; }
+
+        var queryParts = srcParts[1].split("&");
+        if (!queryParts.length) { return src; }
+
+        return queryParts[0];
       },
 
       /**
