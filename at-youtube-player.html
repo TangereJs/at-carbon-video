@@ -1,0 +1,330 @@
+<link rel="import" href="../tangere/tangere.html">
+<link rel="import" href="../google-apis/google-youtube-api.html">
+
+<dom-module id="at-youtube-player">
+  <template>
+    <style>
+    :host .video-player-container {
+    	position:relative;
+    	padding-bottom:56.25%;
+    	padding-top:30px;
+    	height:0;
+    	overflow:hidden;
+    }
+
+    :host .video-player-container iframe,
+    :host .video-player-container object,
+    :host .video-player-container embed {
+    	position:absolute;
+    	top:0;
+    	left:0;
+    	width:100%;
+    	height:100%;
+    }
+
+    </style>
+    <google-youtube-api on-api-load="_onApiLoaded"></google-youtube-api>
+    <div id="youtubePlayerContainer" class="video-player-container">
+      <div id="youtubePlayerPlaceholder"></div>
+    </div>
+  </template>
+  <script>
+    /*
+          Embedded players must have a viewport that is at least 200px by 200px.
+          If the player displays controls, it must be large enough to fully display the controls without shrinking the viewport below the minimum size.
+          We recommend 16:9 players be at least 480 pixels wide and 270 pixels tall.
+        */
+
+    'use strict';
+    Polymer({
+      is: 'at-youtube-player',
+      properties: {
+
+        /**
+         * src - youtube url to the video file
+         * @property src
+         * @type String
+         * @default ""
+         */
+        src: {
+          type: String,
+          value: "",
+          observer: '_srcChanged'
+        },
+
+        /**
+         * autoplay - if true video will start playing after it loads
+         * @property autoplay
+         * @type Boolean
+         * @default false
+         */
+        autoplay: {
+          type: Boolean,
+          value: false
+        },
+
+        /**
+         * muted - true mutes the audio
+         * @property muted
+         * @type Boolean
+         * @default false
+         */
+        muted: {
+          type: Boolean,
+          value: false,
+          observer: '_mutedChanged'
+        },
+
+        /**
+         * videoVolume - audio volume in %
+         * min is 0, max is 100
+         * @property videoVolume
+         * @type Number
+         * @default 100
+         */
+        videoVolume: {
+          type: Number,
+          value: 100,
+          observer: '_videoVolumeChanged'
+        },
+
+        /**
+         * width - width of the video area in px
+         * @property width
+         * @type Number
+         * @default null
+         */
+        width: {
+          type: Number,
+          value: null,
+          observer: '_widthChanged'
+        },
+
+        /**
+         * height - height of the video area in px
+         * @property height
+         * @type Number
+         * @default null
+         */
+        height: {
+          type: Number,
+          value: null,
+          observer: '_heightChanged'
+        },
+
+        /**
+         * currentTime - start time at which video should start in seconds
+         * @property currentTime
+         * @type Number
+         * @default 0
+         */
+        currentTime: {
+          type: Number,
+          value: 0,
+          observer: '_currentTimeChanged'
+        },
+
+        /**
+         * aspect ratio - video aspect ratio
+         * supported values are 4:3 and 16:9
+         * @property aspectRatio
+         * @type String
+         * @default "16:9"
+         */
+        aspectRatio: {
+          type: String,
+          value: "16:9",
+          observer: '_aspectRatioChanged',
+          xtype: 'enum',
+          xvaluelist: [{
+            title: '4:3',
+            value: '4:3'
+          }, {
+            title: '16:9',
+            value: '16:9'
+          }]
+        }
+      },
+
+      ready: function() {
+
+      },
+
+      /**
+       * extracts youtube video id from youtube url
+       */
+      _extractVideoIdFromUrl: function(src) {
+        var tmpSrc = src;
+        if (src.indexOf("https://youtu.be/") > -1) {
+          tmpSrc = src.replace("https://youtu.be/", "https://www.youtube.com?v=");
+        }
+
+        var srcParts = tmpSrc.split('?v=');
+        if (srcParts.length !== 2) { return src; }
+
+        var queryParts = srcParts[1].split("&");
+        if (!queryParts.length) { return src; }
+
+        return queryParts[0];
+      },
+
+      _onApiLoaded: function() {
+        this._playerInstance = false;
+
+        var videoId = this._extractVideoIdFromUrl(this.src);
+        var iWidth = 200;
+        var iHeight = 200;
+
+        var options = {
+          height: iHeight,
+          width: iWidth,
+          videoId: videoId,
+          playerVars: {
+            autoplay: new Boolean(this.autoplay), // set autoplay (see https://developers.google.com/youtube/player_parameters?playerVersion=HTML5#autoplay)
+            controls: 2, // set controls to iframe optimal (see https://developers.google.com/youtube/player_parameters?playerVersion=HTML5#controls)
+            playsinline: 1, // disable fullscreen on iOS by default (see https://developers.google.com/youtube/player_parameters?playerVersion=HTML5#playsinline)
+            modestbranding: 1, // disable youtube logo (see https://developers.google.com/youtube/player_parameters?playerVersion=HTML5#modestbranding)
+            iv_load_policy: 3, // disable annotations (see https://developers.google.com/youtube/player_parameters?playerVersion=HTML5#iv_load_policy)
+            rel: 0 //	disable related videos (see https://developers.google.com/youtube/player_parameters?playerVersion=HTML5#rel)
+          },
+          events: {
+            'onReady': this._onPlayerReady.bind(this),
+            'onStateChange': this._onPlayerStateChanged.bind(this),
+            'onError': this._onPlayerError.bind(this)
+          }
+        };
+
+        var playerInstance = new YT.Player(this.$.youtubePlayerPlaceholder, options);
+        /*
+        cueVideoById
+        loadVideoById
+        playVideo
+        pauseVideo
+        stopVideo
+        seekTo
+
+        setVolume
+        getVolume
+        setSize
+
+        setLoop
+
+
+        player.getPlayerState(): Number
+        Returns the state of the player.Possible values are:
+          -1– unstarted
+        0– ended
+        1– playing
+        2– paused
+        3– buffering
+        5– video cued
+
+        player.getCurrentTime(): Number
+        Returns the elapsed time in seconds since the video started playing.
+
+        player.addEventListener(event: String, listener: String): Void
+
+        player.removeEventListener(event: String, listener: String): Void
+
+        player.destroy(): Void
+        */
+      },
+
+      _onPlayerReady: function(event) {
+        var target = this._playerInstance = event.target;
+        var data = event.data;
+
+        this._mutedChanged(this.muted);
+        this._videoVolumeChanged(this.videoVolume);
+        this._currentTimeChanged(this.currentTime);
+        this._aspectRatioChanged(this.aspectRatio);
+      },
+
+      _onPlayerStateChanged: function(event) {
+        var target = event.target;
+        var data = event.data;
+      },
+
+      _onPlayerError: function(event) {
+        var target = event.target;
+        var data = event.data;
+        switch (data) {
+          case 2:
+            // The request contains an invalid parameter value. For example, this error occurs if you specify a video ID that does not have 11 characters, or if the video ID contains invalid characters, such as exclamation points or asterisks.
+            break;
+          case 5:
+            // The requested content cannot be played in an HTML5 player or another error related to the HTML5 player has occurred.
+            break;
+          case 100:
+            // The video requested was not found. This error occurs when a video has been removed (for any reason) or has been marked as private.
+            break;
+          case 101:
+            // The owner of the requested video does not allow it to be played in embedded players.
+            break;
+          case 150:
+            // This error is the same as 101. It's just a 101 error in disguise!
+            break;
+        }
+      },
+
+      _srcChanged: function (newValue, oldValue) {
+        if (!this._playerInstance) { return; }
+
+        var videoId = this._extractVideoIdFromUrl(newValue);
+        var pInstance = this._playerInstance;
+        pInstance.cueVideoById({
+          videoId: videoId,
+          startSeconds: this.currentTime
+        });
+      },
+
+      _mutedChanged: function (newValue, oldValue) {
+        if (!this._playerInstance) { return; }
+        var pInstance = this._playerInstance;
+        var result = newValue ? pInstace.mute() : pInstance.unMute();
+      },
+
+      _videoVolumeChanged: function (newValue, oldValue) {
+        if (!this._playerInstance) { return; }
+        var pInstance = this._playerInstance;
+        if (isNaN(newValue)) { return; }
+        pInstance.setVolume(parseInt(newValue));
+      },
+
+      _widthChanged: function (newValue, oldValue) {
+        if (!this._playerInstance) { return; }
+
+      },
+
+      _heightChanged: function (newValue, oldValue) {
+        if (!this._playerInstance) { return; }
+
+      },
+
+      _currentTimeChanged: function (newValue, oldValue) {
+        if (!this._playerInstance) { return; }
+        var pInstance = this._playerInstance;
+        if (isNaN(newValue)) { return; }
+        pInstance.seekTo(parseInt(newValue));
+        pInstance.stopVideo();
+      },
+
+      _aspectRatioChanged: function (newValue, oldValue) {
+        if (!this._playerInstance) { return; }
+        if (newValue.indexOf(':') === -1) { return; }
+        var aspectParts = newValue.split(':');
+        if (aspectParts.length !== 2) { return; }
+        var wAspect = aspectParts[0];
+        var hAspect = aspectParts[1];
+        if (isNaN(wAspect) || isNaN(hAspect)) { return; }
+
+        wAspect = parseInt(wAspect);
+        hAspect = parseInt(hAspect);
+        var ratio = (hAspect * 100)/(1.0 * wAspect);
+        var youtubePlayerContainer = this.$.youtubePlayerContainer;
+        ratio = ratio + '%';
+        youtubePlayerContainer.style['padding-bottom'] = ratio;
+      }
+    });
+  </script>
+</dom-module>

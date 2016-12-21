@@ -9,6 +9,6 @@
     "at-doc-viewer": "TangereJs/at-doc-viewer#0.8-preview",
     "at-theme": "TangereJs/at-theme#0.8-preview",
     "at-core-video": "TangereJs/at-core-video#0.8-preview",
-    "google-youtube": "GoogleWebComponents/google-youtube#^1.2.1"
+    "google-apis": "GoogleWebComponents/google-apis#^1.0.0"
   }
 }

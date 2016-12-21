@@ -1,7 +1,7 @@
 <link rel="import" href="../tangere/tangere.html">
 <link rel="import" href="../at-core-video/at-core-video.html">
-<link rel="import" href="../google-youtube/google-youtube.html">
 <link rel="import" href="../at-theme/at-theme.html">
+<link rel="import" href="at-youtube-player.html">
 
 
 <dom-module id="at-carbon-video">
@@ -19,11 +19,6 @@
         box-sizing: border-box;
       }
 
-      :host .google-youtube-container {
-        display: flex;
-        justify-content: center;
-      }
-
     </style>
 
     <div id="atContainer" class="at-container">
@@ -36,21 +31,24 @@
           thumbnail="{{thumbnail}}"
           preload="{{preload}}"
           muted="{{muted}}"
-          videoVolume="{{videoVolume}}"
-          autohideControls="{{autohideControls}}"
-          currentTime="{{currentTime}}"
+          video-volume="{{videoVolume}}"
+          autohide-controls="{{autohideControls}}"
+          current-time="{{currentTime}}"
+          width="{{width}}"
+          height="{{height}}"
         ></at-core-video>
       </template>
       <template is="dom-if" if="{{!_isCorePlayer(src)}}">
-        <div class="google-youtube-container">
-          <google-youtube
-            video-id="{{_extractVideoIdFromUrl(src)}}"
-            thumbnail="{{thumbnail}}"
-            volume="{{videoVolume}}"
-            autoplay="{{_computeAutoplay(autoplay)}}"
-            start-time="{{currentTime}}"
-          ></google-youtube>
-        </div>
+        <at-youtube-player
+          src="{{src}}"
+          autoplay="{{autoplay}}"
+          muted="{{muted}}"
+          video-volume="{{videoVolume}}"
+          current-time="{{currentTime}}"
+          width="{{width}}"
+          height="{{height}}"
+          aspect-ratio="{{aspectRatio}}"
+        ></at-youtube-player>
       </template>
   </div>
 
@@ -115,6 +113,7 @@
 
         /**
          * thumbnail - path or url to the image file that will be displayed as thumbnail
+         * this attribute doesn't work with youtube player
          * @property thumbnail
          * @type String
          * @default ""
@@ -146,9 +145,7 @@
         muted: {
           type: Boolean,
           value: false,
-          reflectToAttribute: true,
-          notify: true,
-          observer: '_mutedChanged'
+          notify: true
         },
 
         /**
@@ -160,8 +157,7 @@
          */
         videoVolume: {
           type: Number,
-          value: 100,
-          observer: '_videoVolumeChanged'
+          value: 100
         },
 
         /**
@@ -207,14 +203,29 @@
         currentTime: {
           type: Number,
           value: 0
+        },
+
+        /**
+         * aspect ratio - video aspect ratio
+         * supported values are 4:3 and 16:9
+         * @property aspectRatio
+         * @type String
+         * @default "16:9"
+         */
+        aspectRatio: {
+          type: String,
+          value: "16:9",
+          xtype: 'enum',
+          xvaluelist: [{
+            title: '4:3',
+            value: '4:3'
+          }, {
+            title: '16:9',
+            value: '16:9'
+          }]
         }
 
       },
-
-      observers: [
-        '_updateDimensions(width, height)',
-        '_updateCurrentTime(currentTime)'
-      ],
 
       _isCorePlayer: function(src) {
         function isString(obj) {
@@ -226,118 +237,11 @@
 
         var isFullUrl = src.indexOf('https://www.youtube.com/watch?v=') > -1;
         var isShortUrl = src.indexOf('https://youtu.be/') > -1;
-        var isCorePlayer = (!isFullUrl && isShortUrl) || (isFullUrl && isShortUrl);
-        return isCorePlayer;
-      },
+        var isYoutubeUrl = (!isFullUrl && isShortUrl) || (isFullUrl && !isShortUrl);
 
-      /**
-       * needed for google-youtube because it expects video ids instead of urls
-       * extracts youtube video id from youtube url
-       */
-      _extractVideoIdFromUrl: function(src) {
-        var srcParts = src.split('?v=');
-        if (srcParts.length !== 2) { return src; }
-
-        var queryParts = srcParts[1].split("&");
-        if (!queryParts.length) { return src; }
-
-        return queryParts[0];
-      },
-
-      /**
-       * needed for google-youtube because plain numbers do not work
-       * adds px to dim which is a number
-       */
-      _addPxToDimension: function(dim) {
-        return dim + 'px';
-      },
-
-      /**
-       * needed for both players
-       * direct binding of width and height doesn't work because value(s) need to be processed before applying
-       */
-      _updateDimensions: function(width, height) {
-        if ([null, ""].indexOf(width) !== -1 || [null, ""].indexOf(height) !== -1) { return; }
-        if (isNaN(parseInt(width)) || isNaN(parseInt(height))) { return; }
-
-        var corePlayer = this.$$('at-core-video');
-        var googleYoutube = this.$$('google-youtube');
-
-        if (corePlayer) {
-          corePlayer.width = width;
-          corePlayer.height = height;
-        } else if (googleYoutube) {
-          googleYoutube.width = this._addPxToDimension(width);
-          googleYoutube.height = this._addPxToDimension(height);
-        }
-      },
-
-      /**
-       * needed for at-core-player
-       * for "reasons" when current-time is set as attribute on at-carbon-video, data binding for currentTime to at-core-player doesn't work
-       * so its done by code
-       */
-      _updateCurrentTime: function(currentTime) {
-        var self = this;
-        this.$.atContainer.addEventListener('dom-change', function(event) {
-          var currentTime1 = parseFloat(currentTime);
-          if (isNaN(currentTime1)) { return; }
-
-          var corePlayer = self.$$('at-core-video');
-          if (corePlayer) {
-            corePlayer.currentTime = currentTime1;
-          }
-
-          /**
-           * because google-youtube is f***ing garbage and it doesn't provide a way to set video start time
-           * hacks such as this one bellow are required in year 2016 (December! FFS, its December and this is needed! WTF?!)
-           * And no. google-youtube.currenttime property is useless; it just holds the value in seconds of for how long video has been played
-           * its utterly unused in initialization of any kind
-           */
-          var googleYoutube = self.$$('google-youtube');
-          var updatedCurrentTime = false;
-          if (googleYoutube) {
-            googleYoutube.addEventListener('state-changed', function(event) {
-              if (googleYoutube.state === 1 && !updatedCurrentTime) {
-                // value of 1 stands for 'playing' state
-                updatedCurrentTime = true;
-                googleYoutube.seekTo(currentTime1);
-              }
-            });
-          }
-        });
-
-      },
-
-      /**
-       * needed for google-youtube because boolean doesn't work
-       * if autoplay is true returns 1, otherwise returns 0
-       */
-      _computeAutoplay: function(autoplay) {
-        return autoplay ? 1 : 0;
-      },
-
-      /**
-       * needed for google-youtube because there is no observer for volume
-       * adds px to dim which is a number
-       */
-      _videoVolumeChanged: function (newValue, oldValue) {
-        var googleYoutube = this.$$('google-youtube');
-        if (googleYoutube) {
-          googleYoutube.setVolume(newValue);
-        }
-      },
-
-      /**
-       * needed for google-youtube because there is no muted attribute
-       * if true mutes the youtube player; otherwise unmutes the player
-       */
-      _mutedChanged: function(newValue, oldValue) {
-        var googleYoutube = this.$$('google-youtube');
-        if (googleYoutube) {
-          var result = newValue ? googleYoutube.mute() : googleYoutube.unMute();
-        }
+        return !isYoutubeUrl;
       }
+
     });
   </script>
 </dom-module>
