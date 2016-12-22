@@ -91,11 +91,11 @@
         /**
          * width - width of the video area in px
          * @property width
-         * @type Number
+         * @type String
          * @default null
          */
         width: {
-          type: Number,
+          type: String,
           value: null,
           observer: '_widthChanged'
         },
@@ -103,11 +103,11 @@
         /**
          * height - height of the video area in px
          * @property height
-         * @type Number
+         * @type String
          * @default null
          */
         height: {
-          type: Number,
+          type: String,
           value: null,
           observer: '_heightChanged'
         },
@@ -292,13 +292,45 @@
       },
 
       _widthChanged: function (newValue, oldValue) {
-        if (!this._playerInstance) { return; }
+        var youtubePlayerContainer = this.$.youtubePlayerContainer;
 
+        if ([null, ""].indexOf(newValue) !== -1) {
+          youtubePlayerContainer.style.width = '';
+          this._aspectRatioChanged(this.aspectRatio);
+          return ;
+        }
+
+        if (newValue.indexOf('%') > -1 || newValue.indexOf('px') > -1) {
+          youtubePlayerContainer.style.width = newValue;
+          return;
+        }
+
+        var parsedValue = parseInt(newValue);
+        if (!isNaN(parsedValue)) {
+          youtubePlayerContainer.style.width = newValue + 'px';
+        }
       },
 
       _heightChanged: function (newValue, oldValue) {
-        if (!this._playerInstance) { return; }
+        var youtubePlayerContainer = this.$.youtubePlayerContainer;
 
+        if ([null, ""].indexOf(newValue) !== -1) {
+          youtubePlayerContainer.style.height = '';
+          this._aspectRatioChanged(this.aspectRatio);
+          return ;
+        }
+
+        if (newValue.indexOf('%') > -1 || newValue.indexOf('px') > -1) {
+          youtubePlayerContainer.style.height = newValue;
+          youtubePlayerContainer.style['padding-bottom'] = '0';
+          return;
+        }
+
+        var parsedValue = parseInt(newValue);
+        if (!isNaN(parsedValue)) {
+          youtubePlayerContainer.style.height = newValue + 'px';
+          youtubePlayerContainer.style['padding-bottom'] = '0';
+        }
       },
 
       _currentTimeChanged: function (newValue, oldValue) {
@@ -310,7 +342,10 @@
       },
 
       _aspectRatioChanged: function (newValue, oldValue) {
-        if (!this._playerInstance) { return; }
+        if ([undefined, null, ""].indexOf(this.width) === -1) { return ; }
+        if ([undefined, null, ""].indexOf(this.height) === -1) { return ; }
+        if ([undefined, null, ""].indexOf(newValue) !== -1) { return; }
+
         if (newValue.indexOf(':') === -1) { return; }
         var aspectParts = newValue.split(':');
         if (aspectParts.length !== 2) { return; }
