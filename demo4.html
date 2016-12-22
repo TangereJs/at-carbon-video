@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<title>&#x3C;at-carbon-video&#x3E; demo3 page</title>
+	<script src="../webcomponentsjs/webcomponents-lite.js"></script>
+	<link rel="import" href="at-carbon-video.html">
+	<link rel="import" href="../google-youtube/google-youtube.html">
+	<link rel="import" href="../paper-styles/typography.html">
+	<link rel="import" href="../paper-styles/color.html">
+	<link rel="import" href="../paper-material/paper-material.html">
+</head>
+
+<body>
+	<style is="custom-style">
+		.paper-font-display1 {
+			font-weight: 300 !important;
+			color: teal;
+			margin: 20px;
+			@apply(--paper-font-display1);
+		}
+
+		.paper-font-headline {
+			@apply(--paper-font-headline);
+		}
+
+		.paper-font-title {
+			@apply(--paper-font-title);
+		}
+
+		.paper-font-subhead {
+			@apply(--paper-font-subhead);
+		}
+
+		.paper-font-button {
+			@apply(--paper-font-button);
+			color: teal;
+		}
+
+		.container-px {
+			width: 300px;
+			border: 1px solid green;
+		}
+
+		.container-percent {
+			width: 75%;
+			border: 1px solid green;
+		}
+	</style>
+	<div class="paper-font-display1">&#x3C;at-carbon-video&#x3E; demo3</div>
+
+	<paper-material>
+		<h1 class="paper-font-headline">Local video, no container, aspect ratio 16:9</h1>
+		<at-carbon-video src="../at-core-video/big_buck_bunny.mp4" controls></at-carbon-video>
+	</paper-material>
+
+	<paper-material>
+		<h1 class="paper-font-headline">Local video, no container, aspect ratio 4:3</h1>
+		<at-carbon-video src="../at-core-video/big_buck_bunny.mp4" aspect-ratio="4:3" controls></at-carbon-video>
+	</paper-material>
+
+	<paper-material>
+		<h1 class="paper-font-headline">Local video, container width 300px, aspect ratio 16:9</h1>
+		<div class="container-px">
+			empty container
+		</div>
+		<div class="container-px">
+			<at-carbon-video src="../at-core-video/big_buck_bunny.mp4" controls></at-carbon-video>
+		</div>
+	</paper-material>
+
+	<paper-material>
+		<h1 class="paper-font-headline">Local video, container width 300px, aspect ratio 4:3</h1>
+		<div class="container-px">
+			empty container
+		</div>
+		<div class="container-px">
+			<at-carbon-video src="../at-core-video/big_buck_bunny.mp4" aspect-ratio="4:3" controls></at-carbon-video>
+		</div>
+	</paper-material>
+
+	<paper-material>
+		<h1 class="paper-font-headline">Local video, container width 75%, aspect ratio 16:9, height 300px</h1>
+		<div class="container-percent">
+			empty container
+		</div>
+		<div class="container-percent">
+			<at-carbon-video src="../at-core-video/big_buck_bunny.mp4" height="300px" controls></at-carbon-video>
+		</div>
+	</paper-material>
+
+	<paper-material>
+		<h1 class="paper-font-headline">Local video, container width 75%, aspect ratio 4:3, height 300px</h1>
+		<div class="container-percent">
+			empty container
+		</div>
+		<div class="container-percent">
+			<at-carbon-video src="../at-core-video/big_buck_bunny.mp4" height="300px" aspect-ratio="4:3" controls></at-carbon-video>
+		</div>
+	</paper-material>
+</body>
+
+</html>

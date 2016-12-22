@@ -175,22 +175,22 @@
         /**
          * width - width of the video area in px
          * @property width
-         * @type Number
+         * @type String
          * @default null
          */
         width: {
-          type: Number,
+          type: String,
           value: null
         },
 
         /**
          * height - height of the video area in px
          * @property height
-         * @type Number
+         * @type String
          * @default null
          */
         height: {
-          type: Number,
+          type: String,
           value: null
         },
 
@@ -232,7 +232,7 @@
           return Object.prototype.toString.call(obj) === "[object String]";
         }
         if (!isString(src) || src === "") {
-          return false;
+          return true;
         }
 
         var isFullUrl = src.indexOf('https://www.youtube.com/watch?v=') > -1;
