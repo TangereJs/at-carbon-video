@@ -7,9 +7,9 @@
     :host .video-player-container {
     	position:relative;
     	padding-bottom:56.25%;
-    	padding-top:30px;
     	height:0;
     	overflow:hidden;
+      max-width: 100%;
     }
 
     :host .video-player-container iframe,
@@ -172,8 +172,8 @@
         this._playerInstance = false;
 
         var videoId = this._extractVideoIdFromUrl(this.src);
-        var iWidth = 200;
-        var iHeight = 200;
+        var iWidth = this.width;
+        var iHeight = this.height;
 
         var options = {
           height: iHeight,
