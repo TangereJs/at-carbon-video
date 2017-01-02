@@ -233,6 +233,7 @@
 
         player.destroy(): Void
         */
+        
       },
 
       _onPlayerReady: function(event) {
@@ -243,6 +244,9 @@
         this._videoVolumeChanged(this.videoVolume);
         this._currentTimeChanged(this.currentTime);
         this._aspectRatioChanged(this.aspectRatio);
+
+        //console.log("player ready");
+        this.fire('card-changed', this, { bubbles: true });
       },
 
       _onPlayerStateChanged: function(event) {
