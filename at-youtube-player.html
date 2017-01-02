@@ -155,8 +155,13 @@
        */
       _extractVideoIdFromUrl: function(src) {
         var tmpSrc = src;
-        if (src.indexOf("https://youtu.be/") > -1) {
-          tmpSrc = src.replace("https://youtu.be/", "https://www.youtube.com?v=");
+
+        if (tmpSrc.indexOf("http://") > -1) {
+          tmpSrc = tmpSrc.replace("http://", "https://");
+        }
+        
+        if (tmpSrc.indexOf("https://youtu.be/") > -1) {
+          tmpSrc = tmpSrc.replace("https://youtu.be/", "https://www.youtube.com?v=");
         }
 
         var srcParts = tmpSrc.split('?v=');
