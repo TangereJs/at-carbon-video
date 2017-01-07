@@ -153,7 +153,10 @@
       /**
        * extracts youtube video id from youtube url
        */
-      _extractVideoIdFromUrl: function(src) {
+      _extractVideoIdFromUrl: function (src) {
+
+        if (!src) return src;
+
         var tmpSrc = src;
 
         if (tmpSrc.indexOf("http://") > -1) {
