@@ -7,7 +7,7 @@
     "at-core-video": "TangereJs/at-core-video#master",
     "at-theme": "TangereJs/at-theme#master",
     "google-apis": "GoogleWebComponents/google-apis#^1.0.0",
-    "paper-styles": "PolymerElements/paper-styles#master",
+    "paper-styles": "TangereJs/paper-styles#master",
     "paper-material": "PolymerElements/paper-material#^1.0.6",
     "at-doc-viewer": "TangereJs/at-doc-viewer#master"
   }
