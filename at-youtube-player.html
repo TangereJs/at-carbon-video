@@ -241,8 +241,8 @@
       /**
        * Creates the youtube player iframe and inserts it into the page
        */
-      _handleOverlayOnClick: function () {
-        console.log('overlay clicked');
+      _handleOverlayOnClick: function (event) {
+        if (event) { event.stopPropagation(); }
 
         var youtubeIframe = document.createElement('iframe');
         Polymer.dom(youtubeIframe).setAttribute('width', this.width);
