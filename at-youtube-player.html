@@ -190,12 +190,13 @@
       },
 
       listeners: {
-        'overlay.click': '_handleOverlayOnClick'
+        'overlay.tap': '_handleOverlayOnTap',
+        'overlay.click': '_ignoreEvent'
       },
 
       ready: function() {
         if (this.autoplay) {
-          this._handleOverlayOnClick();
+          this._handleOverlayOnTap();
         }
       },
 
@@ -238,10 +239,18 @@
         return queryParts[0];
       },
 
+       _ignoreEvent: function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            return false;
+       },
+      
+      
       /**
        * Creates the youtube player iframe and inserts it into the page
        */
-      _handleOverlayOnClick: function (event) {
+      
+      _handleOverlayOnTap: function (event) {
         if (event) { event.stopPropagation(); }
 
         var youtubeIframe = document.createElement('iframe');
