@@ -1,39 +1,69 @@
 <link rel="import" href="../tangere/tangere.html">
-<link rel="import" href="../google-apis/google-youtube-api.html">
+<link rel="import" href="../iron-image/iron-image.html">
+<link rel="import" href="../at-carbon-icon/at-carbon-icon.html">
 
 <dom-module id="at-youtube-player">
   <template>
     <style>
-    :host .video-player-container {
-    	position:relative;
-    	padding-bottom:56.25%;
-    	height:0;
-    	overflow:hidden;
-      max-width: 100%;
-    }
+      :host .video-player-container {
+      	position:relative;
+      	padding-bottom:56.25%;
+      	height:0;
+      	overflow:hidden;
+        max-width: 100%;
+      }
 
-    :host .video-player-container iframe,
-    :host .video-player-container object,
-    :host .video-player-container embed {
-    	position:absolute;
-    	top:0;
-    	left:0;
-    	width:100%;
-    	height:100%;
-    }
+      :host .video-player-container iframe,
+      :host .video-player-container object,
+      :host .video-player-container embed {
+      	position:absolute;
+      	top:0;
+      	left:0;
+      	width:100%;
+      	height:100%;
+      }
 
+      :host .overlay {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        text-align: center;
+      }
+
+      :host .overlay .cover-image {
+        width: 100%;
+        height: 100%;
+      }
+
+      :host .overlay .play-button {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 48px;
+        height: 48px;
+        background-color: #E62117;
+        cursor: pointer;
+      }
+
+      :host .hidden {
+        display: none !important;
+      }
     </style>
-    <google-youtube-api on-api-load="_onApiLoaded"></google-youtube-api>
+
     <div id="youtubePlayerContainer" class="video-player-container">
       <div id="youtubePlayerPlaceholder"></div>
+      <div id="overlay" class="overlay">
+        <iron-image id="coverImage" sizing="cover" preload class="cover-image"></iron-image>
+        <at-carbon-icon icon="now:play" class="play-button"></at-carbon-icon>
+      </div>
     </div>
   </template>
   <script>
     /*
-          Embedded players must have a viewport that is at least 200px by 200px.
-          If the player displays controls, it must be large enough to fully display the controls without shrinking the viewport below the minimum size.
-          We recommend 16:9 players be at least 480 pixels wide and 270 pixels tall.
-        */
+       Embedded players must have a viewport that is at least 200px by 200px.
+      If the player displays controls, it must be large enough to fully display the controls without shrinking the viewport below the minimum size.
+      We recommend 16:9 players be at least 480 pixels wide and 270 pixels tall.
+    */
 
     'use strict';
     Polymer({
@@ -146,8 +176,25 @@
         }
       },
 
+      listeners: {
+        'overlay.click': '_handleOverlayOnClick'
+      },
+
       ready: function() {
 
+      },
+
+      /**
+       * sets the url on cover image
+       */
+      _srcChanged: function (newValue, oldValue) {
+        if (!newValue) { return; }
+
+        var videoId = this._extractVideoIdFromUrl(newValue);
+        var coverImage = this.$.coverImage;
+
+        var coverImageUrl = 'http://img.youtube.com/vi/' + videoId + '/maxresdefault.jpg';
+        Polymer.dom(coverImage).setAttribute('src', coverImageUrl);
       },
 
       /**
@@ -162,7 +209,7 @@
         if (tmpSrc.indexOf("http://") > -1) {
           tmpSrc = tmpSrc.replace("http://", "https://");
         }
-        
+
         if (tmpSrc.indexOf("https://youtu.be/") > -1) {
           tmpSrc = tmpSrc.replace("https://youtu.be/", "https://www.youtube.com?v=");
         }
@@ -176,118 +223,38 @@
         return queryParts[0];
       },
 
-      _onApiLoaded: function() {
-        this._playerInstance = false;
+      /**
+       * Creates the youtube player iframe and inserts it into the page
+       */
+      _handleOverlayOnClick: function () {
+        console.log('overlay clicked');
+
+        var youtubeIframe = document.createElement('iframe');
+        Polymer.dom(youtubeIframe).setAttribute('width', this.width);
+        Polymer.dom(youtubeIframe).setAttribute('height', this.height);
+        Polymer.dom(youtubeIframe).setAttribute('frameborder', 0);
 
         var videoId = this._extractVideoIdFromUrl(this.src);
-        var iWidth = this.width;
-        var iHeight = this.height;
+        var videoUrl = 'https://www.youtube.com/embed/' + videoId;
 
-        var options = {
-          height: iHeight,
-          width: iWidth,
-          videoId: videoId,
-          playerVars: {
-            autoplay: new Boolean(this.autoplay), // set autoplay (see https://developers.google.com/youtube/player_parameters?playerVersion=HTML5#autoplay)
-            controls: 2, // set controls to iframe optimal (see https://developers.google.com/youtube/player_parameters?playerVersion=HTML5#controls)
-            playsinline: 1, // disable fullscreen on iOS by default (see https://developers.google.com/youtube/player_parameters?playerVersion=HTML5#playsinline)
-            modestbranding: 1, // disable youtube logo (see https://developers.google.com/youtube/player_parameters?playerVersion=HTML5#modestbranding)
-            iv_load_policy: 3, // disable annotations (see https://developers.google.com/youtube/player_parameters?playerVersion=HTML5#iv_load_policy)
-            rel: 0 //	disable related videos (see https://developers.google.com/youtube/player_parameters?playerVersion=HTML5#rel)
-          },
-          events: {
-            'onReady': this._onPlayerReady.bind(this),
-            'onStateChange': this._onPlayerStateChanged.bind(this),
-            'onError': this._onPlayerError.bind(this)
-          }
-        };
+        // append other options as url query parameters
+        videoUrl += "?"
+        // options to add are autoplay, muted, videoVolume and currentTime
+        // muted and videoVolume are not supported by embed api
+        videoUrl += "autoplay=" + (this.autoplay ? "1" : "0");
+        videoUrl += "&start=" + this.currentTime;
+        videoUrl += "&controls=2";
+        videoUrl += "&playsinline=1";
+        videoUrl += "&modestbranding=1";
+        videoUrl += "&iv_load_policy=3";
+        videoUrl += "&rel=0";
 
-        var playerInstance = new YT.Player(this.$.youtubePlayerPlaceholder, options);
-        /*
-        cueVideoById
-        loadVideoById
-        playVideo
-        pauseVideo
-        stopVideo
-        seekTo
+        Polymer.dom(youtubeIframe).setAttribute('src', videoUrl);
 
-        setVolume
-        getVolume
-        setSize
+        var ytPlacehodler = this.$.youtubePlayerPlaceholder;
+        Polymer.dom(ytPlacehodler.parentElement).replaceChild(youtubeIframe, ytPlacehodler);
 
-        setLoop
-
-
-        player.getPlayerState(): Number
-        Returns the state of the player.Possible values are:
-          -1– unstarted
-        0– ended
-        1– playing
-        2– paused
-        3– buffering
-        5– video cued
-
-        player.getCurrentTime(): Number
-        Returns the elapsed time in seconds since the video started playing.
-
-        player.addEventListener(event: String, listener: String): Void
-
-        player.removeEventListener(event: String, listener: String): Void
-
-        player.destroy(): Void
-        */
-        
-      },
-
-      _onPlayerReady: function(event) {
-        var target = this._playerInstance = event.target;
-        var data = event.data;
-
-        this._mutedChanged(this.muted);
-        this._videoVolumeChanged(this.videoVolume);
-        this._currentTimeChanged(this.currentTime);
-        this._aspectRatioChanged(this.aspectRatio);
-
-        //console.log("player ready");
-        this.fire('card-changed', this, { bubbles: true });
-      },
-
-      _onPlayerStateChanged: function(event) {
-        var target = event.target;
-        var data = event.data;
-      },
-
-      _onPlayerError: function(event) {
-        var target = event.target;
-        var data = event.data;
-        switch (data) {
-          case 2:
-            // The request contains an invalid parameter value. For example, this error occurs if you specify a video ID that does not have 11 characters, or if the video ID contains invalid characters, such as exclamation points or asterisks.
-            break;
-          case 5:
-            // The requested content cannot be played in an HTML5 player or another error related to the HTML5 player has occurred.
-            break;
-          case 100:
-            // The video requested was not found. This error occurs when a video has been removed (for any reason) or has been marked as private.
-            break;
-          case 101:
-            // The owner of the requested video does not allow it to be played in embedded players.
-            break;
-          case 150:
-            // This error is the same as 101. It's just a 101 error in disguise!
-            break;
-        }
-      },
-
-      _srcChanged: function (newValue, oldValue) {
-        if (!this._playerInstance) { return; }
-
-        var videoId = this._extractVideoIdFromUrl(newValue);
-        var pInstance = this._playerInstance;
-        pInstance.cueVideoById({
-          videoId: videoId,
-          startSeconds: this.currentTime
-        });
+        this.toggleClass('hidden', true, this.$.overlay);
       },
 
       _mutedChanged: function (newValue, oldValue) {
