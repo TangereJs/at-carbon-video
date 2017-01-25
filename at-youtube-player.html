@@ -194,7 +194,9 @@
       },
 
       ready: function() {
-
+        if (this.autoplay) {
+          this._handleOverlayOnClick();
+        }
       },
 
       /**
