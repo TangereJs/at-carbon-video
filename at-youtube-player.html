@@ -244,12 +244,12 @@
             e.stopPropagation();
             return false;
        },
-      
-      
+
+
       /**
        * Creates the youtube player iframe and inserts it into the page
        */
-      
+
       _handleOverlayOnTap: function (event) {
         if (event) { event.stopPropagation(); }
 
@@ -257,7 +257,8 @@
         Polymer.dom(youtubeIframe).setAttribute('width', this.width);
         Polymer.dom(youtubeIframe).setAttribute('height', this.height);
         Polymer.dom(youtubeIframe).setAttribute('frameborder', 0);
-
+        Polymer.dom(youtubeIframe).setAttribute('allowfullscreen', 'allowfullscreen');
+        
         var videoId = this._extractVideoIdFromUrl(this.src);
         var videoUrl = 'https://www.youtube.com/embed/' + videoId;
 
