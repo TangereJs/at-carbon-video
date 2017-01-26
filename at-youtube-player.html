@@ -253,22 +253,12 @@
       _handleOverlayOnTap: function (event) {
         if (event) { event.stopPropagation(); }
 
-        // if (this._isIOSSafari()) {
-          // do the html import
-          this._doTheHtmlImport();
-        // } else {
-        //   // do the iframe embed
-        //   this._doTheIFrameEmbed();
-        // }
-      },
-
-      _doTheIFrameEmbed: function() {
         var youtubeIframe = document.createElement('iframe');
         Polymer.dom(youtubeIframe).setAttribute('width', this.width);
         Polymer.dom(youtubeIframe).setAttribute('height', this.height);
         Polymer.dom(youtubeIframe).setAttribute('frameborder', 0);
         Polymer.dom(youtubeIframe).setAttribute('allowfullscreen', 'allowfullscreen');
-
+        
         var videoId = this._extractVideoIdFromUrl(this.src);
         var videoUrl = 'https://www.youtube.com/embed/' + videoId;
 
@@ -290,30 +280,6 @@
         Polymer.dom(ytPlacehodler.parentElement).replaceChild(youtubeIframe, ytPlacehodler);
 
         this.toggleClass('hidden', true, this.$.overlay);
-      },
-
-      _doTheHtmlImport: function () {
-        this.importHref(
-          '../google-youtube/google-youtube.html',
-          this._onImportSuccess.bind(this),
-          function (error) {
-            console.log('error');
-          }
-        );
-      },
-
-      _onImportSuccess: function (event) {
-        console.log('success');
-
-        var googleYoutube = document.createElement('google-youtube');
-        googleYoutube.autoplay = 1;
-        googleYoutube.videoId = this._extractVideoIdFromUrl(this.src);
-
-        var ytPlacehodler = this.$.youtubePlayerPlaceholder;
-        Polymer.dom(ytPlacehodler.parentElement).replaceChild(googleYoutube, ytPlacehodler);
-
-        this.toggleClass('hidden', true, this.$.overlay);
-
       },
 
       _mutedChanged: function (newValue, oldValue) {
@@ -397,13 +363,6 @@
         var youtubePlayerContainer = this.$.youtubePlayerContainer;
         ratio = ratio + '%';
         youtubePlayerContainer.style['padding-bottom'] = ratio;
-      },
-
-      _isIOSSafari: function () {
-        var iOS = !!ua.match(/iPad/i) || !!ua.match(/iPhone/i);
-        var webkit = !!ua.match(/WebKit/i);
-        var iOSSafari = iOS && webkit && !ua.match(/CriOS/i);
-        return iOSSafari;
       }
     });
   </script>
