@@ -209,7 +209,7 @@
         var videoId = this._extractVideoIdFromUrl(newValue);
         var coverImage = this.$.coverImage;
 
-        var coverImageUrl = 'http://img.youtube.com/vi/' + videoId + '/maxresdefault.jpg';
+        var coverImageUrl = '//img.youtube.com/vi/' + videoId + '/maxresdefault.jpg';
         Polymer.dom(coverImage).setAttribute('src', coverImageUrl);
       },
 
@@ -258,7 +258,7 @@
         Polymer.dom(youtubeIframe).setAttribute('height', this.height);
         Polymer.dom(youtubeIframe).setAttribute('frameborder', 0);
         Polymer.dom(youtubeIframe).setAttribute('allowfullscreen', 'allowfullscreen');
-        
+
         var videoId = this._extractVideoIdFromUrl(this.src);
         var videoUrl = 'https://www.youtube.com/embed/' + videoId;
 
