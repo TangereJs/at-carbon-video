@@ -211,6 +211,13 @@
 
         var coverImageUrl = '//img.youtube.com/vi/' + videoId + '/maxresdefault.jpg';
         Polymer.dom(coverImage).setAttribute('src', coverImageUrl);
+
+        // check if video is already playing
+        var youtubeIframe = Polymer.dom(this.$.youtubePlayerContainer).querySelector('iframe');
+        if (youtubeIframe) {
+          var videoUrl = this._computeVideoUrl();
+          Polymer.dom(youtubeIframe).setAttribute('src', videoUrl);
+        }
       },
 
       /**
@@ -239,26 +246,7 @@
         return queryParts[0];
       },
 
-       _ignoreEvent: function (e) {
-            e.preventDefault();
-            e.stopPropagation();
-            return false;
-       },
-
-
-      /**
-       * Creates the youtube player iframe and inserts it into the page
-       */
-
-      _handleOverlayOnTap: function (event) {
-        if (event) { event.stopPropagation(); }
-
-        var youtubeIframe = document.createElement('iframe');
-        Polymer.dom(youtubeIframe).setAttribute('width', this.width);
-        Polymer.dom(youtubeIframe).setAttribute('height', this.height);
-        Polymer.dom(youtubeIframe).setAttribute('frameborder', 0);
-        Polymer.dom(youtubeIframe).setAttribute('allowfullscreen', 'allowfullscreen');
-
+      _computeVideoUrl: function() {
         var videoId = this._extractVideoIdFromUrl(this.src);
         var videoUrl = 'https://www.youtube.com/embed/' + videoId;
 
@@ -274,6 +262,30 @@
         videoUrl += "&iv_load_policy=3";
         videoUrl += "&rel=0";
 
+        return videoUrl;
+      },
+
+      _ignoreEvent: function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        return false;
+      },
+
+
+      /**
+       * Creates the youtube player iframe and inserts it into the page
+       */
+
+      _handleOverlayOnTap: function (event) {
+        if (event) { event.stopPropagation(); }
+
+        var youtubeIframe = document.createElement('iframe');
+        Polymer.dom(youtubeIframe).setAttribute('width', this.width);
+        Polymer.dom(youtubeIframe).setAttribute('height', this.height);
+        Polymer.dom(youtubeIframe).setAttribute('frameborder', 0);
+        Polymer.dom(youtubeIframe).setAttribute('allowfullscreen', 'allowfullscreen');
+
+        var videoUrl = this._computeVideoUrl();
         Polymer.dom(youtubeIframe).setAttribute('src', videoUrl);
 
         var ytPlacehodler = this.$.youtubePlayerPlaceholder;
