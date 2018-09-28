@@ -9,7 +9,7 @@
     "at-carbon-icon": "TangereJs/at-carbon-icon#master",
     "iron-image": "PolymerElements/iron-image#^2.0.0",
     "paper-styles": "TangereJs/paper-styles#master",
-    "paper-material": "PolymerElements/paper-material#^1.0.6",
+    "paper-material": "PolymerElements/paper-material#^2.0.0",
     "at-doc-viewer": "TangereJs/at-doc-viewer#master"
   }
 }
