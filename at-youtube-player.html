@@ -209,7 +209,7 @@
         var videoId = this._extractVideoIdFromUrl(newValue);
         var coverImage = this.$.coverImage;
 
-        var coverImageUrl = '//img.youtube.com/vi/' + videoId + '/maxresdefault.jpg';
+        var coverImageUrl = 'https://img.youtube.com/vi/' + videoId + '/maxresdefault.jpg';
         Polymer.dom(coverImage).setAttribute('src', coverImageUrl);
 
         // check if video is already playing
