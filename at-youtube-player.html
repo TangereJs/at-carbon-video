@@ -189,15 +189,20 @@
         }
       },
 
-      listeners: {
-        'overlay.tap': '_handleOverlayOnTap',
-        'overlay.click': '_ignoreEvent'
-      },
+      // 
+      // Listeners object doesn't work for at-youtube-player; events have to be attached to in ready function 
+      // 
 
       ready: function() {
         if (this.autoplay) {
           this._handleOverlayOnTap();
         }
+  
+        // tap event isn't received for this.$.overlay; click event has to be used instead
+        var self = this;
+        this.$.overlay.addEventListener('click', function(e) {
+          self._handleOverlayOnTap(e);
+        });
       },
 
       /**
